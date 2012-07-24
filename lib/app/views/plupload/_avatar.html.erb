@@ -1,0 +1,110 @@
+<script type="text/javascript">
+	$(function() {
+		var avatar_uploader = new plupload.Uploader({
+			runtimes : '<%= options[:runtimes] %>',
+			browse_button : '<%= options[:button_id] %>',
+			drop_element:'<%= options[:button_id] %>',
+			container : '<%= options[:container] %>',
+			max_file_size : '1mb',
+			multi_selection: false,
+			url : '<%= url_for(model_object) %>',
+      multipart: true,
+      multipart_params : 
+      $.extend({
+          <% if options[:params].count > 0 %>'<%= CGI::unescape(options[:params].to_param).split("=").join("':'").gsub("&", "', '") %>'<% end %>
+        }, 
+        {
+          authenticity_token : $("input[name=authenticity_token]").val(), 
+          "_method" : "<%= [model_object].flatten.pop.new_record? ? 'post' : 'put' %>", 
+          "_plupload_upload" : "<%= options[:field_name] %>"
+        }
+      ),
+      <% if options[:filters].count > 0 %>
+        filters : <%= options[:filters].to_json.to_s.html_safe %>,
+      <% else %>
+			filters : [
+				{title : "Image files", extensions : "jpg,gif,png"},
+				{title : "Zip files", extensions : "zip"}
+			],
+      <% end %>
+			flash_swf_url : '/assets/plupload-1.5.4/js/plupload.flash.swf',
+			silverlight_xap_url : '/assets/plupload-1.5.4/js/plupload.silverlight.xap'
+		});
+	
+		avatar_uploader.bind('Init', function(up, params) {
+			
+			// dodanie draga
+			drop_el = $('#'+up.settings.drop_element);
+			
+			drop_el.on('dragover', function() {
+				drop_el.stop(1,0).fadeTo(100,0.6);
+			});
+			drop_el.on('dragleave', function() {
+				drop_el.stop(1,0).fadeTo(100,1);
+			});
+			drop_el.on('drop', function() {
+				drop_el.stop(1,0).fadeTo(100,1);
+			});
+			
+		});
+
+		avatar_uploader.init();
+
+		avatar_uploader.bind('FilesAdded', function(up, files) {
+/*
+			$.each(files, function(i, file) {
+				$('#innovator_pictures').prepend(
+					'<li id="' + file.id + '"><label>image</label><span class="image">' +
+					file.name + ' (' + plupload.formatSize(file.size) + ') <b></b></span>' +
+				'</li>');
+			});
+*/
+			// show preloader
+			$('#'+up.settings.container).append( $('<span class="preloader"></span>') );
+			
+			up.refresh(); // Reposition Flash/Silverlight
+			avatar_uploader.start();
+		});
+	
+		avatar_uploader.bind('UploadProgress', function(up, file) {
+			// $('#' + file.id + " b").html(file.percent + "%");
+		});
+	
+		avatar_uploader.bind('Error', function(up, err) {
+		
+			// prepend error to list
+		
+/*
+			$('#innovator_pictures').prepend("<div>Error: " + err.code +
+				", Message: " + err.message +
+				(err.file ? ", File: " + err.file.name : "") +
+				"</div>"
+			);
+*/
+	
+			up.refresh(); // Reposition Flash/Silverlight
+		});
+	
+		avatar_uploader.bind('FileUploaded', function(up, file, data) {
+//			$('#' + file.id + " b").html("100%");
+			file = $.parseJSON( data.response );
+
+			// show thumb
+			var timeout = null;
+			$('#'+up.settings.browse_button+' img').attr('src', file.thumb ).one('load', function(){
+
+				// remove preloader - afert 30 ms?
+				timeout = setTimeout( function() {
+					$('span.preloader').remove();
+					clearTimeout(timeout);
+				},200);
+
+			}).each(function(){
+				if(this.complete || (isIE && parseInt(jQuery.browser.version) == 6))
+					$(this).trigger("load");
+			});
+			
+		});
+	});
+	
+</script>

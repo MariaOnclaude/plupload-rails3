@@ -2,8 +2,8 @@
 	$(function() {
 		var uploader = new plupload.Uploader({
 			runtimes : '<%= options[:runtimes] %>',
-			browse_button : 'pickfiles',
-			drop_element:'pickfiles',
+			browse_button : '<%= options[:button_id] %>',
+			drop_element:'<%= options[:button_id] %>',
 			container : '<%= options[:container] %>',
 			max_file_size : '3mb',
 			url : '<%= url_for(model_object) %>',
@@ -38,7 +38,7 @@
 
 		uploader.bind('FilesAdded', function(up, files) {
 			$.each(files, function(i, file) {
-				$('#innovator_pictures').prepend(
+				$('#work_pictures').prepend(
 					'<li id="' + file.id + '"><label>image</label><span class="image">' +
 					file.name + ' (' + plupload.formatSize(file.size) + ') <b></b></span>' +
 				'</li>');
@@ -53,7 +53,7 @@
 		});
 	
 		uploader.bind('Error', function(up, err) {
-			$('#innovator_pictures').prepend("<div>Error: " + err.code +
+			$('#work_pictures').prepend("<div>Error: " + err.code +
 				", Message: " + err.message +
 				(err.file ? ", File: " + err.file.name : "") +
 				"</div>"
@@ -68,20 +68,27 @@
 
 			var highest = 0;
 			var number_pattern = /[0-9]+/i;
-			$('#innovator_pictures input[type="text"]').each( function() {
+			$('#work_pictures input[type="text"]').each( function() {
 				var field_number = parseInt( $(this).attr('id').match(number_pattern) );
 	    	if ( field_number > highest ) highest = field_number;
 			});
 			highest++;
 
 			var name_pattern = /[^0-9]+/i;
-			var field_id = $('#innovator_pictures input[type="text"]:eq(0)').attr('id').match(name_pattern)  + highest + '_';
-			var field_name = $('#innovator_pictures input[type="text"]:eq(0)').attr('name').match(name_pattern)  + highest + ']';
-			
+			if ( highest > 1 ) {
+				var field_id = $('#work_pictures input[type="text"]:eq(0)').attr('id').match(name_pattern)  + highest + '_';
+				var field_name = $('#work_pictures input[type="text"]:eq(0)').attr('name').match(name_pattern)  + highest + ']';
+			} else {
+				var field_id = 'work_asset_stacks_attributes_0_';
+				var field_name = 'work[asset_stacks_attributes][0]';
+			}
+				
 			// dodanie obrazka + input z nazwą
 			$('#' + file.id + " span").html('<img src="'+asset.thumb+'" />');
-			$('#' + file.id + " span").after('<a href="#" class="remove_images">delete</a>'
-  			+'<input type="text" id="'+field_id+'name" name="'+field_name+'[name]" value="'+asset.name+'" />');
+			$('#' + file.id + " span").after('<a href="#" class="icon-remove remove_images"></a>'
+  			+'<input type="text" id="'+field_id+'name" class="image_name" name="'+field_name+'[name]" value="'+asset.name+'" />'
+  			+'<textarea rows="20" id="'+field_id+'desc" class="image_desc" name="'+field_name+'[desc]" value="Image description..." />'
+  			);
   		
   		$('#' + file.id ).after(''
   		+'<input id="'+field_id+'asset_attributes_id" type="hidden" value="'+asset.asset_id+'" name="'+field_name+'[asset_attributes][id]">'
