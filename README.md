@@ -1,5 +1,6 @@
 plupload-rails3
 ==============
+#####THIS IS AN OLD VERSION OF THE GEM, SPECIFICALLY CUSTOMIZED FOR THE ONCLAUDE PROJECT. <br />Please refer to the official gem at: https://github.com/codeodor/plupload-rails3.
 
 [Plupload](http://www.plupload.com/) lets you upload multiple files at a time and even allows drag and drop from the local file system into the browser (with Firefox and Safari).
 
